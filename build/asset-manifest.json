@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/auto-trading-website/static/css/main.47b2ba28.css",
+    "main.js": "/auto-trading-website/static/js/main.54843aca.js",
+    "index.html": "/auto-trading-website/index.html",
+    "main.47b2ba28.css.map": "/auto-trading-website/static/css/main.47b2ba28.css.map",
+    "main.54843aca.js.map": "/auto-trading-website/static/js/main.54843aca.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.47b2ba28.css",
+    "static/js/main.54843aca.js"
+  ]
+}
