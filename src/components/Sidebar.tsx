@@ -4,11 +4,13 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { 
   FiHome, 
-  FiTrendingUp, 
-  FiSettings, 
   FiPieChart, 
   FiZap,
-  FiCode
+  FiCode,
+  FiLogOut,
+  FiUser,
+  FiMessageCircle,
+  FiFileText
 } from 'react-icons/fi';
 
 const SidebarContainer = styled.nav`
@@ -103,14 +105,14 @@ const StatusRow = styled.div`
 
 const menuItems = [
   { path: '/', icon: FiHome, label: '대시보드' },
-  { path: '/chart', icon: FiTrendingUp, label: '실시간 차트' },
   { path: '/auto-trading', icon: FiZap, label: '자동매매' },
-  { path: '/portfolio', icon: FiPieChart, label: '포트폴리오' },
   { path: '/strategy-builder', icon: FiCode, label: '전략 빌더' },
-  { path: '/settings', icon: FiSettings, label: '설정' },
+  { path: '/community', icon: FiMessageCircle, label: '커뮤니티' },
+  { path: '/board', icon: FiFileText, label: '게시판' },
+  { path: '/my-page', icon: FiUser, label: '마이페이지' },
 ];
 
-const Sidebar: React.FC = () => {
+const Sidebar: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   return (
     <SidebarContainer>
       <Logo>
@@ -143,6 +145,35 @@ const Sidebar: React.FC = () => {
           <StatusDot isActive={true} />
           실시간 데이터 연결됨
         </StatusRow>
+        
+        <motion.button
+          onClick={onLogout}
+          style={{
+            width: '100%',
+            marginTop: '20px',
+            padding: '12px',
+            background: 'rgba(229, 62, 62, 0.1)',
+            border: '1px solid #e53e3e',
+            borderRadius: '8px',
+            color: '#e53e3e',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            fontSize: '14px',
+            fontWeight: '500',
+            transition: 'all 0.3s ease'
+          }}
+          whileHover={{ 
+            background: 'rgba(229, 62, 62, 0.2)',
+            transform: 'translateY(-2px)'
+          }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <FiLogOut size={16} />
+          로그아웃
+        </motion.button>
       </StatusIndicator>
     </SidebarContainer>
   );

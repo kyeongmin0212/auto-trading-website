@@ -1,43 +1,38 @@
 import React, { useState } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { 
-  FiPlus, 
-  FiTrash2, 
-  FiSettings, 
   FiCode, 
-  FiPlay,
-  FiSave,
   FiTrendingUp,
   FiTrendingDown,
   FiDollarSign,
   FiTarget,
   FiAlertTriangle,
   FiBarChart,
-  FiClock,
   FiZap,
   FiCloud,
-  FiDownload
+  FiDownload,
+  FiSave,
+  FiPlay
 } from 'react-icons/fi';
 import { saveStrategyTemplate, StrategyTemplate } from '../firebase/services';
 import toast from 'react-hot-toast';
 
 const BuilderContainer = styled.div`
   padding: 20px;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+  max-width: 1200px;
+  margin: 0 auto;
 `;
 
 const Header = styled.div`
-  margin-bottom: 20px;
+  text-align: center;
+  margin-bottom: 40px;
 `;
 
 const Title = styled.h1`
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -46,848 +41,1076 @@ const Title = styled.h1`
 
 const Subtitle = styled.p`
   color: #a0aec0;
-  font-size: 16px;
+  font-size: 18px;
+  line-height: 1.6;
 `;
 
-const MainContent = styled.div`
-  display: grid;
-  grid-template-columns: 300px 1fr 400px;
-  gap: 20px;
-  flex: 1;
-  min-height: 0;
-`;
-
-const Sidebar = styled.div`
+const StrategyForm = styled.div`
   background: rgba(26, 31, 46, 0.8);
   border: 1px solid #2d3748;
-  border-radius: 12px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-  overflow-y: auto;
+  border-radius: 16px;
+  padding: 30px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 `;
 
-const SidebarTitle = styled.h3`
-  font-size: 18px;
+const FormSection = styled.div`
+  margin-bottom: 30px;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+const SectionTitle = styled.h3`
+  font-size: 20px;
   font-weight: 600;
-  margin-bottom: 15px;
   color: #ffffff;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const IndicatorItem = styled.div`
-  background: rgba(45, 55, 72, 0.5);
-  border: 1px solid #4a5568;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 10px;
-  cursor: grab;
-  transition: all 0.2s ease;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 10px;
-  
-  &:hover {
-    background: rgba(45, 55, 72, 0.8);
-    border-color: #667eea;
-    transform: translateY(-2px);
-  }
-  
-  &:active {
-    cursor: grabbing;
-  }
+  padding-bottom: 10px;
+  border-bottom: 1px solid #4a5568;
 `;
 
-const IndicatorIcon = styled.div<{ color: string }>`
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+const FormGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+`;
+
+const FormGroup = styled.div`
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: ${props => props.color};
-  color: #ffffff;
-`;
-
-const IndicatorInfo = styled.div`
-  flex: 1;
-`;
-
-const IndicatorName = styled.div`
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 4px;
-`;
-
-const IndicatorDesc = styled.div`
-  font-size: 12px;
-  color: #a0aec0;
-`;
-
-const Canvas = styled.div`
-  background: rgba(26, 31, 46, 0.8);
-  border: 1px solid #2d3748;
-  border-radius: 12px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-  overflow-y: auto;
-  min-height: 600px;
-`;
-
-const CanvasTitle = styled.h3`
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
 `;
 
-const DropZone = styled.div<{ isDraggingOver: boolean }>`
-  min-height: 200px;
-  border: 2px dashed ${props => props.isDraggingOver ? '#667eea' : '#4a5568'};
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: ${props => props.isDraggingOver ? 'rgba(102, 126, 234, 0.1)' : 'transparent'};
-  transition: all 0.2s ease;
-  
-  ${props => !props.isDraggingOver && `
-    &:hover {
-      border-color: #667eea;
-      background: rgba(102, 126, 234, 0.05);
-    }
-  `}
-`;
-
-const DropZoneText = styled.div`
+const Label = styled.label`
+  font-size: 14px;
+  font-weight: 500;
   color: #a0aec0;
-  font-size: 16px;
-  text-align: center;
 `;
 
-const StrategyBlock = styled.div`
+const Input = styled.input`
   background: rgba(45, 55, 72, 0.8);
   border: 1px solid #4a5568;
   border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 15px;
-  cursor: grab;
-  transition: all 0.2s ease;
+  padding: 12px 16px;
+  color: #ffffff;
+  font-size: 14px;
+  transition: all 0.3s ease;
   
-  &:hover {
-    border-color: #667eea;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  &:focus {
+      border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   }
   
-  &:active {
-    cursor: grabbing;
+  &::placeholder {
+    color: #718096;
   }
 `;
 
-const BlockHeader = styled.div`
+const Select = styled.select`
+  background: rgba(45, 55, 72, 0.8);
+  border: 1px solid #4a5568;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #ffffff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  
+  &:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+`;
+
+const Switch = styled.label`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
-`;
-
-const BlockTitle = styled.div`
-  font-weight: 600;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const BlockActions = styled.div`
-  display: flex;
-  gap: 8px;
-`;
-
-const ActionButton = styled.button`
-  background: none;
-  border: none;
-  color: #a0aec0;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.1);
-  }
+  padding: 12px 0;
 `;
 
-const BlockContent = styled.div`
-  color: #a0aec0;
-  font-size: 14px;
+const SwitchInput = styled.input`
+  display: none;
 `;
 
-const CodePanel = styled.div`
-  background: rgba(26, 31, 46, 0.8);
-  border: 1px solid #2d3748;
+const SwitchSlider = styled.div<{ isActive: boolean }>`
+  width: 50px;
+  height: 24px;
+  background: ${props => props.isActive ? '#667eea' : '#4a5568'};
   border-radius: 12px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-  overflow-y: auto;
-`;
-
-const CodeTitle = styled.h3`
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const CodeEditor = styled.div`
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 16px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #e6e6e6;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  min-height: 400px;
+  position: relative;
+  transition: all 0.3s ease;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: ${props => props.isActive ? '26px' : '2px'};
+    width: 20px;
+    height: 20px;
+    background: #ffffff;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 30px;
 `;
 
-const Button = styled(motion.button)`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+const Button = styled(motion.button)<{ variant?: 'primary' | 'success' | 'secondary' }>`
+  padding: 14px 28px;
   border: none;
-  color: #ffffff;
-  padding: 12px 20px;
   border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 8px;
   
+  background: ${props => {
+    switch (props.variant) {
+      case 'success': return 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
+      case 'secondary': return 'rgba(45, 55, 72, 0.8)';
+      default: return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    }
+  }};
+  
+  color: #ffffff;
+  
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
   }
-`;
-
-const SecondaryButton = styled(Button)`
-  background: rgba(45, 55, 72, 0.8);
-  border: 1px solid #4a5568;
   
-  &:hover {
-    background: rgba(45, 55, 72, 1);
-    box-shadow: 0 8px 25px rgba(45, 55, 72, 0.3);
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
   }
 `;
 
-// 사용 가능한 지표들
-const availableIndicators: Array<{
-  id: string;
-  name: string;
-  description: string;
-  icon: any;
-  color: string;
-  type: 'indicator' | 'action' | 'condition';
-}> = [
-  {
-    id: 'rsi',
-    name: 'RSI (상대강도지수)',
-    description: '과매수/과매도 구간 판단',
-    icon: FiTrendingUp,
-    color: 'rgba(72, 187, 120, 0.2)',
-    type: 'indicator'
-  },
-  {
-    id: 'macd',
-    name: 'MACD',
-    description: '추세 전환 신호 감지',
-    icon: FiBarChart,
-    color: 'rgba(66, 153, 225, 0.2)',
-    type: 'indicator'
-  },
-  {
-    id: 'ma',
-    name: '이동평균선',
-    description: '추세 방향 확인',
-    icon: FiTrendingUp,
-    color: 'rgba(237, 137, 54, 0.2)',
-    type: 'indicator'
-  },
-  {
-    id: 'bollinger',
-    name: '볼린저 밴드',
-    description: '변동성 기반 매매',
-    icon: FiTarget,
-    color: 'rgba(159, 122, 234, 0.2)',
-    type: 'indicator'
-  },
-  {
-    id: 'volume',
-    name: '거래량',
-    description: '거래량 기반 신호',
-    icon: FiBarChart,
-    color: 'rgba(236, 72, 153, 0.2)',
-    type: 'indicator'
-  }
-];
+const CodePreview = styled.div`
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 30px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #e6e6e6;
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+`;
 
-// 사용 가능한 액션들
-const availableActions: Array<{
-  id: string;
-  name: string;
-  description: string;
-  icon: any;
-  color: string;
-  type: 'indicator' | 'action' | 'condition';
-}> = [
-  {
-    id: 'buy',
-    name: '매수',
-    description: '자산 매수 실행',
-    icon: FiTrendingUp,
-    color: 'rgba(72, 187, 120, 0.2)',
-    type: 'action'
-  },
-  {
-    id: 'sell',
-    name: '매도',
-    description: '자산 매도 실행',
-    icon: FiTrendingDown,
-    color: 'rgba(229, 62, 62, 0.2)',
-    type: 'action'
-  },
-  {
-    id: 'stop_loss',
-    name: '손절',
-    description: '손실 제한 설정',
-    icon: FiAlertTriangle,
-    color: 'rgba(237, 137, 54, 0.2)',
-    type: 'action'
-  },
-  {
-    id: 'take_profit',
-    name: '익절',
-    description: '이익 실현 설정',
-    icon: FiDollarSign,
-    color: 'rgba(72, 187, 120, 0.2)',
-    type: 'action'
-  }
-];
+const CodeHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #333;
+`;
 
-// 사용 가능한 조건들
-const availableConditions: Array<{
-  id: string;
-  name: string;
-  description: string;
-  icon: any;
-  color: string;
-  type: 'indicator' | 'action' | 'condition';
-}> = [
-  {
-    id: 'greater_than',
-    name: '보다 큼',
-    description: '값이 기준보다 클 때',
-    icon: FiTrendingUp,
-    color: 'rgba(66, 153, 225, 0.2)',
-    type: 'condition'
-  },
-  {
-    id: 'less_than',
-    name: '보다 작음',
-    description: '값이 기준보다 작을 때',
-    icon: FiTrendingDown,
-    color: 'rgba(229, 62, 62, 0.2)',
-    type: 'condition'
-  },
-  {
-    id: 'crosses_above',
-    name: '상향 돌파',
-    description: '선이 위로 교차할 때',
-    icon: FiZap,
-    color: 'rgba(237, 137, 54, 0.2)',
-    type: 'condition'
-  },
-  {
-    id: 'crosses_below',
-    name: '하향 돌파',
-    description: '선이 아래로 교차할 때',
-    icon: FiZap,
-    color: 'rgba(159, 122, 234, 0.2)',
-    type: 'condition'
-  }
-];
+const CodeTitle = styled.h4`
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
 
-interface StrategyItem {
-  id: string;
-  type: 'indicator' | 'action' | 'condition';
-  name: string;
-  description: string;
-  icon: any;
-  color: string;
-  config?: any;
-}
+const InfoBox = styled.div`
+  background: rgba(72, 187, 120, 0.1);
+  border: 1px solid #48bb78;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 30px;
+`;
+
+const InfoTitle = styled.h4`
+  color: #48bb78;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+`;
+
+const InfoList = styled.ul`
+  color: #a0aec0;
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.6;
+`;
 
 const StrategyBuilder: React.FC = () => {
-  const [strategyItems, setStrategyItems] = useState<StrategyItem[]>([]);
+  const [strategy, setStrategy] = useState({
+    name: '',
+    description: '',
+    
+    // 기본 설정
+    targetMarket: 'NASDAQ',
+    strategyType: 'TREND_FOLLOWING',
+    timeframe: '1H',
+    paperTrading: true,
+    initialBalance: 1000000,
+    
+    // 매매 조건
+    buyCondition: 'RSI_OVERSOLD',
+    sellCondition: 'RSI_OVERBOUGHT',
+    additionalBuyCondition: 'NONE',
+    additionalSellCondition: 'NONE',
+    
+    // 지표 설정
+    rsiPeriod: 14,
+    rsiOversold: 30,
+    rsiOverbought: 70,
+    
+    macdFast: 12,
+    macdSlow: 26,
+    macdSignal: 9,
+    
+    bollingerPeriod: 20,
+    bollingerStd: 2,
+    
+    // 추가 지표들
+    shortMA: 10,
+    longMA: 50,
+    stochasticK: 14,
+    stochasticD: 3,
+    cciPeriod: 20,
+    atrPeriod: 14,
+    volumeMAPeriod: 20,
+    fibonacciLevels: 'STANDARD',
+    
+    // 고급 전략 설정
+    entryStrategy: 'SINGLE_ENTRY',
+    exitStrategy: 'SINGLE_EXIT',
+    positionSizing: 'FIXED_PERCENTAGE',
+    rebalancingPeriod: 'NEVER',
+    hedgingStrategy: 'NONE',
+    aiAnalysis: 'NONE',
+    
+    // 리스크 관리
+    stopLoss: 5,
+    takeProfit: 10,
+    maxPositionSize: 20,
+    
+    // 추가 설정
+    enableDCA: false,
+    dcaPercentage: 10,
+    tradingHours: {
+      start: 9,
+      end: 17
+    }
+  });
+
   const [generatedCode, setGeneratedCode] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [strategyName, setStrategyName] = useState('');
-  const [strategyDescription, setStrategyDescription] = useState('');
 
-  // 임시 사용자 ID (실제로는 인증 시스템에서 가져와야 함)
-  const userId = 'demo-user-123';
+  const handleInputChange = (field: string, value: any) => {
+    setStrategy(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    generateCode();
+  };
 
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
-
-    const { source, destination } = result;
-
-    if (source.droppableId === 'available' && destination.droppableId === 'strategy') {
-      const itemId = result.draggableId;
-      const allItems = [...availableIndicators, ...availableActions, ...availableConditions];
-      const draggedItem = allItems.find(item => item.id === itemId);
-      
-      if (draggedItem) {
-        const newItem: StrategyItem = {
-          ...draggedItem,
-          id: `${draggedItem.id}_${Date.now()}`,
-          config: {}
+  const handleNestedChange = (parent: string, field: string, value: any) => {
+    setStrategy(prev => {
+      const currentParent = prev[parent as keyof typeof prev];
+      if (typeof currentParent === 'object' && currentParent !== null) {
+        return {
+          ...prev,
+          [parent]: {
+            ...currentParent,
+            [field]: value
+          }
         };
-        
-        setStrategyItems(prev => [...prev, newItem]);
-        generateCode([...strategyItems, newItem]);
       }
-    } else if (source.droppableId === 'strategy' && destination.droppableId === 'strategy') {
-      const items = Array.from(strategyItems);
-      const [reorderedItem] = items.splice(source.index, 1);
-      items.splice(destination.index, 0, reorderedItem);
-      
-      setStrategyItems(items);
-      generateCode(items);
-    }
+      return prev;
+    });
+    generateCode();
   };
 
-  const removeItem = (itemId: string) => {
-    const newItems = strategyItems.filter(item => item.id !== itemId);
-    setStrategyItems(newItems);
-    generateCode(newItems);
-  };
+  const generateCode = () => {
+    const code = `# 자동매매 전략 설정
+# 전략명: ${strategy.name || '기본 전략'}
 
-  const saveStrategyToFirebase = async () => {
-    if (!strategyName.trim()) {
-      toast.error('전략 이름을 입력해주세요.');
-      return;
-    }
-
-    if (strategyItems.length === 0) {
-      toast.error('전략에 최소 하나의 요소를 추가해주세요.');
-      return;
-    }
-
-    setIsSaving(true);
-
-    try {
-      const template: Omit<StrategyTemplate, 'id' | 'createdAt' | 'updatedAt'> = {
-        userId,
-        name: strategyName,
-        description: strategyDescription || '사용자 정의 전략',
-        exchange: 'binance', // 기본값, 나중에 설정에서 가져올 수 있음
-        indicators: strategyItems.filter(item => item.type === 'indicator').map(item => item.name),
-        actions: strategyItems.filter(item => item.type === 'action').map(item => item.name),
-        conditions: strategyItems.filter(item => item.type === 'condition').map(item => item.name),
-        settings: {
-          maxTradeAmount: 1000000,
-          stopLossPercentage: 5,
-          takeProfitPercentage: 10,
-        },
-        code: generatedCode,
-        isPublic: false,
-      };
-
-      const result = await saveStrategyTemplate(template);
-
-      if (result.success) {
-        toast.success('전략이 Firebase에 저장되었습니다!');
-        setStrategyName('');
-        setStrategyDescription('');
-      } else {
-        toast.error(`저장 실패: ${result.error}`);
-      }
-    } catch (error) {
-      toast.error('저장 중 오류가 발생했습니다.');
-      console.error('저장 오류:', error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const generateCode = (items: StrategyItem[]) => {
-    let code = `# 자동매매 전략 코드
-import ccxt
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, time
 
 class AutoTradingStrategy:
     def __init__(self):
-        self.exchange = ccxt.binance({
-            'apiKey': 'YOUR_API_KEY',
-            'secret': 'YOUR_SECRET_KEY',
-            'sandbox': True
-        })
+        # 기본 설정
+        self.target_market = "${strategy.targetMarket}"
+        self.paper_trading = ${strategy.paperTrading}
+        self.initial_balance = ${strategy.initialBalance}
         
-    def get_data(self, symbol='BTC/USDT', timeframe='1h', limit=100):
-        """시장 데이터 가져오기"""
-        ohlcv = self.exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
-        df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-        return df
+        # 매매 조건
+        self.buy_condition = "${strategy.buyCondition}"
+        self.sell_condition = "${strategy.sellCondition}"
+        
+        # 지표 설정
+        self.rsi_period = ${strategy.rsiPeriod}
+        self.rsi_oversold = ${strategy.rsiOversold}
+        self.rsi_overbought = ${strategy.rsiOverbought}
+        
+        self.macd_fast = ${strategy.macdFast}
+        self.macd_slow = ${strategy.macdSlow}
+        self.macd_signal = ${strategy.macdSignal}
+        
+        self.bollinger_period = ${strategy.bollingerPeriod}
+        self.bollinger_std = ${strategy.bollingerStd}
+        
+        # 리스크 관리
+        self.stop_loss = ${strategy.stopLoss}
+        self.take_profit = ${strategy.takeProfit}
+        self.max_position_size = ${strategy.maxPositionSize}
+        
+        # 추가 설정
+        self.enable_dca = ${strategy.enableDCA}
+        self.dca_percentage = ${strategy.dcaPercentage}
+        self.trading_start = ${strategy.tradingHours.start}
+        self.trading_end = ${strategy.tradingHours.end}
     
-    def calculate_indicators(self, df):
-        """지표 계산"""
-`;
-
-    items.forEach(item => {
-      switch (item.id.split('_')[0]) {
-        case 'rsi':
-          code += `
-        # RSI 계산
-        delta = df['close'].diff()
-        gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+    def check_trading_hours(self):
+        current_time = datetime.now().time()
+        start_time = time(self.trading_start, 0)
+        end_time = time(self.trading_end, 0)
+        return start_time <= current_time <= end_time
+    
+    def calculate_rsi(self, data, period=${strategy.rsiPeriod}):
+        delta = data.diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
         rs = gain / loss
-        df['rsi'] = 100 - (100 / (1 + rs))`;
-          break;
-        case 'macd':
-          code += `
-        # MACD 계산
-        exp1 = df['close'].ewm(span=12, adjust=False).mean()
-        exp2 = df['close'].ewm(span=26, adjust=False).mean()
-        df['macd'] = exp1 - exp2
-        df['signal'] = df['macd'].ewm(span=9, adjust=False).mean()`;
-          break;
-        case 'ma':
-          code += `
-        # 이동평균선 계산
-        df['ma_20'] = df['close'].rolling(window=20).mean()
-        df['ma_50'] = df['close'].rolling(window=50).mean()`;
-          break;
-      }
-    });
-
-    code += `
+        rsi = 100 - (100 / (1 + rs))
+        return rsi
     
-    def check_signals(self, df):
-        """매매 신호 확인"""
-        signals = []
-`;
-
-    items.forEach(item => {
-      if (item.type === 'condition') {
-        code += `
-        # ${item.name} 조건 확인
-        # TODO: 구체적인 조건 로직 구현`;
-      }
-    });
-
-    code += `
-        return signals
+    def calculate_macd(self, data):
+        ema_fast = data.ewm(span=${strategy.macdFast}).mean()
+        ema_slow = data.ewm(span=${strategy.macdSlow}).mean()
+        macd_line = ema_fast - ema_slow
+        signal_line = macd_line.ewm(span=${strategy.macdSignal}).mean()
+        histogram = macd_line - signal_line
+        return macd_line, signal_line, histogram
     
-    def execute_trade(self, signal):
-        """거래 실행"""
-`;
-
-    items.forEach(item => {
-      if (item.type === 'action') {
-        switch (item.id.split('_')[0]) {
-          case 'buy':
-            code += `
-        if signal['action'] == 'buy':
-            # 매수 로직
-            order = self.exchange.create_market_buy_order(signal['symbol'], signal['amount'])
-            print(f"매수 주문 실행: {order}")`;
-            break;
-          case 'sell':
-            code += `
-        if signal['action'] == 'sell':
-            # 매도 로직
-            order = self.exchange.create_market_sell_order(signal['symbol'], signal['amount'])
-            print(f"매도 주문 실행: {order}")`;
-            break;
-        }
-      }
-    });
-
-    code += `
+    def calculate_bollinger_bands(self, data):
+        sma = data.rolling(window=${strategy.bollingerPeriod}).mean()
+        std = data.rolling(window=${strategy.bollingerPeriod}).std()
+        upper_band = sma + (std * ${strategy.bollingerStd})
+        lower_band = sma - (std * ${strategy.bollingerStd})
+        return upper_band, sma, lower_band
     
-    def run_strategy(self):
-        """전략 실행"""
-        while True:
-            try:
-                df = self.get_data()
-                df = self.calculate_indicators(df)
-                signals = self.check_signals(df)
-                
-                for signal in signals:
-                    self.execute_trade(signal)
-                
-                time.sleep(60)  # 1분 대기
-                
-            except Exception as e:
-                print(f"오류 발생: {e}")
-                time.sleep(60)
+    def should_buy(self, data):
+        if not self.check_trading_hours():
+            return False
+            
+        rsi = self.calculate_rsi(data)
+        current_rsi = rsi.iloc[-1]
+        
+        if self.buy_condition == "RSI_OVERSOLD":
+            return current_rsi < ${strategy.rsiOversold}
+        elif self.buy_condition == "BOLLINGER_LOWER":
+            upper, middle, lower = self.calculate_bollinger_bands(data)
+            return data.iloc[-1] <= lower.iloc[-1]
+        
+        return False
+    
+    def should_sell(self, data):
+        if not self.check_trading_hours():
+            return False
+            
+        rsi = self.calculate_rsi(data)
+        current_rsi = rsi.iloc[-1]
+        
+        if self.sell_condition == "RSI_OVERBOUGHT":
+            return current_rsi > ${strategy.rsiOverbought}
+        elif self.sell_condition == "BOLLINGER_UPPER":
+            upper, middle, lower = self.calculate_bollinger_bands(data)
+            return data.iloc[-1] >= upper.iloc[-1]
+        
+        return False
+    
+    def execute_strategy(self, data):
+        if self.should_buy(data):
+            return "BUY"
+        elif self.should_sell(data):
+            return "SELL"
+        return "HOLD"
 
-if __name__ == "__main__":
+# 전략 인스턴스 생성
     strategy = AutoTradingStrategy()
-    strategy.run_strategy()
+
+# 사용 예시
+# signal = strategy.execute_strategy(price_data)
+# if signal == "BUY":
+#     place_buy_order()
+# elif signal == "SELL":
+#     place_sell_order()
 `;
 
     setGeneratedCode(code);
   };
 
+  const handleSave = async () => {
+    if (!strategy.name.trim()) {
+      toast.error('전략 이름을 입력해주세요.');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const strategyTemplate: Omit<StrategyTemplate, 'id' | 'createdAt' | 'updatedAt'> = {
+        userId: 'current-user', // 실제로는 현재 로그인된 사용자 ID
+        name: strategy.name,
+        description: strategy.description,
+        exchange: strategy.targetMarket,
+        indicators: ['RSI', 'MACD', 'Bollinger Bands'],
+        actions: ['BUY', 'SELL', 'HOLD'],
+        conditions: [strategy.buyCondition, strategy.sellCondition],
+        settings: {
+          apiKey: '',
+          apiSecret: '',
+          exchange: strategy.targetMarket,
+          emailNotifications: true,
+          pushNotifications: false,
+          priceAlerts: true,
+          tradeAlerts: true,
+          maxTradeAmount: strategy.initialBalance,
+          stopLossPercentage: strategy.stopLoss,
+          takeProfitPercentage: strategy.takeProfit,
+          twoFactorAuth: false,
+          sessionTimeout: 30
+        },
+        code: generatedCode,
+        isPublic: false
+      };
+
+      await saveStrategyTemplate(strategyTemplate);
+      toast.success('전략이 성공적으로 저장되었습니다!');
+    } catch (error) {
+      console.error('전략 저장 실패:', error);
+      toast.error('전략 저장에 실패했습니다.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const downloadCode = () => {
+    const element = document.createElement('a');
+    const file = new Blob([generatedCode], { type: 'text/plain' });
+    element.href = URL.createObjectURL(file);
+    element.download = `${strategy.name || 'strategy'}.py`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    toast.success('전략 코드가 다운로드되었습니다!');
+  };
+
+  // 컴포넌트 마운트시 코드 생성
+  React.useEffect(() => {
+    generateCode();
+  }, []);
+
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
       <BuilderContainer>
         <Header>
           <Title>전략 빌더</Title>
-          <Subtitle>드래그 앤 드롭으로 자동매매 전략을 구성하고 코드를 생성하세요</Subtitle>
+        <Subtitle>
+          간단한 설정으로 자동매매 전략을 구성하고 Python 코드를 생성하세요
+        </Subtitle>
         </Header>
 
-        <MainContent>
-        <Sidebar>
-          <SidebarTitle>
-            <FiSettings size={20} />
-            사용 가능한 요소
-          </SidebarTitle>
-          
-          <Droppable droppableId="available" isDropDisabled={true}>
-            {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps}>
-                <h4 style={{ color: '#a0aec0', marginBottom: '10px' }}>📊 지표</h4>
-                {availableIndicators.map((indicator, index) => (
-                  <Draggable key={indicator.id} draggableId={indicator.id} index={index}>
-                    {(provided) => (
-                      <IndicatorItem
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        <IndicatorIcon color={indicator.color}>
-                          <indicator.icon size={16} />
-                        </IndicatorIcon>
-                        <IndicatorInfo>
-                          <IndicatorName>{indicator.name}</IndicatorName>
-                          <IndicatorDesc>{indicator.description}</IndicatorDesc>
-                        </IndicatorInfo>
-                      </IndicatorItem>
-                    )}
-                  </Draggable>
-                ))}
-                
-                <h4 style={{ color: '#a0aec0', marginBottom: '10px', marginTop: '20px' }}>⚡ 액션</h4>
-                {availableActions.map((action, index) => (
-                  <Draggable key={action.id} draggableId={action.id} index={availableIndicators.length + index}>
-                    {(provided) => (
-                      <IndicatorItem
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        <IndicatorIcon color={action.color}>
-                          <action.icon size={16} />
-                        </IndicatorIcon>
-                        <IndicatorInfo>
-                          <IndicatorName>{action.name}</IndicatorName>
-                          <IndicatorDesc>{action.description}</IndicatorDesc>
-                        </IndicatorInfo>
-                      </IndicatorItem>
-                    )}
-                  </Draggable>
-                ))}
-                
-                <h4 style={{ color: '#a0aec0', marginBottom: '10px', marginTop: '20px' }}>🔗 조건</h4>
-                {availableConditions.map((condition, index) => (
-                  <Draggable key={condition.id} draggableId={condition.id} index={availableIndicators.length + availableActions.length + index}>
-                    {(provided) => (
-                      <IndicatorItem
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        <IndicatorIcon color={condition.color}>
-                          <condition.icon size={16} />
-                        </IndicatorIcon>
-                        <IndicatorInfo>
-                          <IndicatorName>{condition.name}</IndicatorName>
-                          <IndicatorDesc>{condition.description}</IndicatorDesc>
-                        </IndicatorInfo>
-                      </IndicatorItem>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </Sidebar>
-
-        <Canvas>
-          <CanvasTitle>
-            <FiZap size={20} />
-            전략 구성
-          </CanvasTitle>
-          
-          <Droppable droppableId="strategy">
-            {(provided, snapshot) => (
-              <DropZone
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                isDraggingOver={snapshot.isDraggingOver}
-              >
-                {strategyItems.length === 0 ? (
-                  <DropZoneText>
-                    왼쪽에서 요소를 드래그하여 전략을 구성하세요
-                  </DropZoneText>
-                ) : (
-                  strategyItems.map((item, index) => (
-                    <Draggable key={item.id} draggableId={item.id} index={index}>
-                      {(provided) => (
-                        <StrategyBlock
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          <BlockHeader>
-                            <BlockTitle>
-                              <div style={{
-                                width: '24px',
-                                height: '24px',
-                                borderRadius: '4px',
-                                background: item.color,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#ffffff'
-                              }}>
-                                <item.icon size={14} />
-                              </div>
-                              {item.name}
-                            </BlockTitle>
-                            <BlockActions>
-                              <ActionButton onClick={() => removeItem(item.id)}>
-                                <FiTrash2 size={14} />
-                              </ActionButton>
-                            </BlockActions>
-                          </BlockHeader>
-                          <BlockContent>
-                            {item.description}
-                          </BlockContent>
-                        </StrategyBlock>
-                      )}
-                    </Draggable>
-                  ))
-                )}
-                {provided.placeholder}
-              </DropZone>
-            )}
-          </Droppable>
-        </Canvas>
-
-        <CodePanel>
-          <CodeTitle>
+      <StrategyForm>
+        <FormSection>
+          <SectionTitle>
             <FiCode size={20} />
-            생성된 코드
-          </CodeTitle>
-          
-          <CodeEditor>
-            {generatedCode || '# 전략을 구성하면 코드가 여기에 생성됩니다'}
-          </CodeEditor>
-          
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ marginBottom: '10px' }}>
-              <label style={{ color: '#a0aec0', fontSize: '14px', display: 'block', marginBottom: '5px' }}>
-                전략 이름 *
-              </label>
-              <input
+            전략 기본 정보
+          </SectionTitle>
+          <FormGrid>
+            <FormGroup>
+              <Label>전략 이름</Label>
+              <Input
                 type="text"
-                value={strategyName}
-                onChange={(e) => setStrategyName(e.target.value)}
-                placeholder="전략 이름을 입력하세요"
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  background: 'rgba(45, 55, 72, 0.5)',
-                  border: '1px solid #4a5568',
-                  borderRadius: '6px',
-                  color: '#ffffff',
-                  fontSize: '14px'
-                }}
+                placeholder="예: RSI + MACD 크로스오버 전략"
+                value={strategy.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
               />
-            </div>
-            
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ color: '#a0aec0', fontSize: '14px', display: 'block', marginBottom: '5px' }}>
-                전략 설명
-              </label>
-              <textarea
-                value={strategyDescription}
-                onChange={(e) => setStrategyDescription(e.target.value)}
-                placeholder="전략에 대한 설명을 입력하세요"
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  background: 'rgba(45, 55, 72, 0.5)',
-                  border: '1px solid #4a5568',
-                  borderRadius: '6px',
-                  color: '#ffffff',
-                  fontSize: '14px',
-                  resize: 'vertical'
-                }}
+            </FormGroup>
+            <FormGroup>
+              <Label>전략 설명</Label>
+              <Input
+                type="text"
+                placeholder="전략에 대한 상세한 설명"
+                value={strategy.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
               />
-            </div>
-          </div>
+            </FormGroup>
+            <FormGroup>
+              <Label>대상 시장</Label>
+              <Select
+                value={strategy.targetMarket}
+                onChange={(e) => handleInputChange('targetMarket', e.target.value)}
+              >
+                <option value="NASDAQ">NASDAQ (나스닥)</option>
+                <option value="NYSE">NYSE (뉴욕증권거래소)</option>
+                <option value="KOSPI">KOSPI (코스피)</option>
+                <option value="KOSDAQ">KOSDAQ (코스닥)</option>
+                <option value="CRYPTO">암호화폐 (BTC, ETH)</option>
+                <option value="FOREX">외환 (USD/KRW, EUR/USD)</option>
+                <option value="COMMODITY">상품 (금, 은, 원유)</option>
+              </Select>
+            </FormGroup>
+            <FormGroup>
+              <Label>초기 자금 (원)</Label>
+              <Input
+                type="number"
+                value={strategy.initialBalance}
+                onChange={(e) => handleInputChange('initialBalance', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>전략 유형</Label>
+              <Select
+                value={strategy.strategyType || 'TREND_FOLLOWING'}
+                onChange={(e) => handleInputChange('strategyType', e.target.value)}
+              >
+                <option value="TREND_FOLLOWING">트렌드 추종</option>
+                <option value="MEAN_REVERSION">평균 회귀</option>
+                <option value="BREAKOUT">브레이크아웃</option>
+                <option value="SCALPING">스캘핑</option>
+                <option value="ARBITRAGE">차익거래</option>
+                <option value="PAIRS_TRADING">페어 트레이딩</option>
+              </Select>
+            </FormGroup>
+            <FormGroup>
+              <Label>시간프레임</Label>
+              <Select
+                value={strategy.timeframe || '1H'}
+                onChange={(e) => handleInputChange('timeframe', e.target.value)}
+              >
+                <option value="1M">1분</option>
+                <option value="5M">5분</option>
+                <option value="15M">15분</option>
+                <option value="30M">30분</option>
+                <option value="1H">1시간</option>
+                <option value="4H">4시간</option>
+                <option value="1D">일봉</option>
+                <option value="1W">주봉</option>
+              </Select>
+            </FormGroup>
+          </FormGrid>
+        </FormSection>
+
+        <FormSection>
+          <SectionTitle>
+            <FiTrendingUp size={20} />
+            매매 조건 설정
+          </SectionTitle>
+          <FormGrid>
+            <FormGroup>
+              <Label>매수 조건</Label>
+              <Select
+                value={strategy.buyCondition}
+                onChange={(e) => handleInputChange('buyCondition', e.target.value)}
+              >
+                <option value="RSI_OVERSOLD">RSI 과매도 (30 이하)</option>
+                <option value="RSI_OVERSOLD_STRONG">RSI 강한 과매도 (20 이하)</option>
+                <option value="BOLLINGER_LOWER">볼린저 밴드 하단</option>
+                <option value="BOLLINGER_SQUEEZE">볼린저 밴드 스퀴즈</option>
+                <option value="MACD_CROSSOVER">MACD 상향 돌파</option>
+                <option value="MACD_HISTOGRAM">MACD 히스토그램 증가</option>
+                <option value="STOCHASTIC_OVERSOLD">스토캐스틱 과매도</option>
+                <option value="WILLIAMS_R_OVERSOLD">윌리엄스 %R 과매도</option>
+                <option value="CCI_OVERSOLD">CCI 과매도</option>
+                <option value="PRICE_ACTION_HAMMER">가격 액션 망치형</option>
+                <option value="SUPPORT_BREAKOUT">지지선 돌파</option>
+                <option value="VOLUME_SPIKE">거래량 급증</option>
+                <option value="GOLDEN_CROSS">골든 크로스 (이동평균)</option>
+                <option value="FIBONACCI_RETRACEMENT">피보나치 되돌림</option>
+                <option value="PIVOT_POINT_SUPPORT">피벗 포인트 지지</option>
+              </Select>
+            </FormGroup>
+            <FormGroup>
+              <Label>매도 조건</Label>
+              <Select
+                value={strategy.sellCondition}
+                onChange={(e) => handleInputChange('sellCondition', e.target.value)}
+              >
+                <option value="RSI_OVERBOUGHT">RSI 과매수 (70 이상)</option>
+                <option value="RSI_OVERBOUGHT_STRONG">RSI 강한 과매수 (80 이상)</option>
+                <option value="BOLLINGER_UPPER">볼린저 밴드 상단</option>
+                <option value="BOLLINGER_EXPANSION">볼린저 밴드 확장</option>
+                <option value="MACD_CROSSOVER_DOWN">MACD 하향 돌파</option>
+                <option value="MACD_HISTOGRAM_DEC">MACD 히스토그램 감소</option>
+                <option value="STOCHASTIC_OVERBOUGHT">스토캐스틱 과매수</option>
+                <option value="WILLIAMS_R_OVERBOUGHT">윌리엄스 %R 과매수</option>
+                <option value="CCI_OVERBOUGHT">CCI 과매수</option>
+                <option value="PRICE_ACTION_SHOOTING">가격 액션 유성형</option>
+                <option value="RESISTANCE_BREAKDOWN">저항선 하향 돌파</option>
+                <option value="VOLUME_DECLINE">거래량 감소</option>
+                <option value="DEATH_CROSS">데드 크로스 (이동평균)</option>
+                <option value="FIBONACCI_EXTENSION">피보나치 확장</option>
+                <option value="PIVOT_POINT_RESISTANCE">피벗 포인트 저항</option>
+              </Select>
+            </FormGroup>
+            <FormGroup>
+              <Label>추가 매수 조건</Label>
+              <Select
+                value={strategy.additionalBuyCondition || 'NONE'}
+                onChange={(e) => handleInputChange('additionalBuyCondition', e.target.value)}
+              >
+                <option value="NONE">없음</option>
+                <option value="VOLUME_CONFIRMATION">거래량 확인</option>
+                <option value="TREND_ALIGNMENT">트렌드 정렬</option>
+                <option value="MULTIPLE_TIMEFRAMES">다중 시간프레임</option>
+                <option value="NEWS_SENTIMENT">뉴스 센티먼트</option>
+                <option value="OPTIONS_FLOW">옵션 플로우</option>
+              </Select>
+            </FormGroup>
+            <FormGroup>
+              <Label>추가 매도 조건</Label>
+              <Select
+                value={strategy.additionalSellCondition || 'NONE'}
+                onChange={(e) => handleInputChange('additionalSellCondition', e.target.value)}
+              >
+                <option value="NONE">없음</option>
+                <option value="VOLUME_CONFIRMATION">거래량 확인</option>
+                <option value="TREND_REVERSAL">트렌드 반전</option>
+                <option value="MULTIPLE_TIMEFRAMES">다중 시간프레임</option>
+                <option value="NEWS_SENTIMENT">뉴스 센티먼트</option>
+                <option value="OPTIONS_FLOW">옵션 플로우</option>
+              </Select>
+            </FormGroup>
+          </FormGrid>
+        </FormSection>
+
+        <FormSection>
+          <SectionTitle>
+            <FiBarChart size={20} />
+            지표 설정
+          </SectionTitle>
+          <FormGrid>
+            <FormGroup>
+              <Label>RSI 기간</Label>
+              <Input
+                type="number"
+                min="5"
+                max="50"
+                value={strategy.rsiPeriod}
+                onChange={(e) => handleInputChange('rsiPeriod', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>RSI 과매도 기준</Label>
+              <Input
+                type="number"
+                min="10"
+                max="40"
+                value={strategy.rsiOversold}
+                onChange={(e) => handleInputChange('rsiOversold', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>RSI 과매수 기준</Label>
+              <Input
+                type="number"
+                min="60"
+                max="90"
+                value={strategy.rsiOverbought}
+                onChange={(e) => handleInputChange('rsiOverbought', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>MACD 빠른 기간</Label>
+              <Input
+                type="number"
+                min="5"
+                max="20"
+                value={strategy.macdFast}
+                onChange={(e) => handleInputChange('macdFast', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>MACD 느린 기간</Label>
+              <Input
+                type="number"
+                min="20"
+                max="50"
+                value={strategy.macdSlow}
+                onChange={(e) => handleInputChange('macdSlow', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>MACD 시그널 기간</Label>
+              <Input
+                type="number"
+                min="5"
+                max="20"
+                value={strategy.macdSignal}
+                onChange={(e) => handleInputChange('macdSignal', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>볼린저 밴드 기간</Label>
+              <Input
+                type="number"
+                min="10"
+                max="50"
+                value={strategy.bollingerPeriod}
+                onChange={(e) => handleInputChange('bollingerPeriod', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>볼린저 밴드 표준편차</Label>
+              <Input
+                type="number"
+                min="1"
+                max="5"
+                step="0.1"
+                value={strategy.bollingerStd}
+                onChange={(e) => handleInputChange('bollingerStd', parseFloat(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>이동평균 단기 기간</Label>
+              <Input
+                type="number"
+                min="5"
+                max="50"
+                value={strategy.shortMA || 10}
+                onChange={(e) => handleInputChange('shortMA', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>이동평균 장기 기간</Label>
+              <Input
+                type="number"
+                min="20"
+                max="200"
+                value={strategy.longMA || 50}
+                onChange={(e) => handleInputChange('longMA', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>스토캐스틱 K 기간</Label>
+              <Input
+                type="number"
+                min="5"
+                max="30"
+                value={strategy.stochasticK || 14}
+                onChange={(e) => handleInputChange('stochasticK', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>스토캐스틱 D 기간</Label>
+              <Input
+                type="number"
+                min="3"
+                max="10"
+                value={strategy.stochasticD || 3}
+                onChange={(e) => handleInputChange('stochasticD', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>CCI 기간</Label>
+              <Input
+                type="number"
+                min="10"
+                max="50"
+                value={strategy.cciPeriod || 20}
+                onChange={(e) => handleInputChange('cciPeriod', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>ATR 기간</Label>
+              <Input
+                type="number"
+                min="5"
+                max="30"
+                value={strategy.atrPeriod || 14}
+                onChange={(e) => handleInputChange('atrPeriod', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>거래량 이동평균 기간</Label>
+              <Input
+                type="number"
+                min="5"
+                max="50"
+                value={strategy.volumeMAPeriod || 20}
+                onChange={(e) => handleInputChange('volumeMAPeriod', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>피보나치 되돌림 레벨</Label>
+              <Select
+                value={strategy.fibonacciLevels || 'STANDARD'}
+                onChange={(e) => handleInputChange('fibonacciLevels', e.target.value)}
+              >
+                <option value="STANDARD">표준 (23.6%, 38.2%, 50%, 61.8%)</option>
+                <option value="EXTENDED">확장 (78.6%, 88.6%, 127.2%)</option>
+                <option value="CUSTOM">커스텀</option>
+              </Select>
+            </FormGroup>
+          </FormGrid>
+        </FormSection>
+
+        <FormSection>
+          <SectionTitle>
+            <FiZap size={20} />
+            고급 전략 설정
+          </SectionTitle>
+          <FormGrid>
+            <FormGroup>
+              <Label>진입 전략</Label>
+              <Select
+                value={strategy.entryStrategy || 'SINGLE_ENTRY'}
+                onChange={(e) => handleInputChange('entryStrategy', e.target.value)}
+              >
+                <option value="SINGLE_ENTRY">단일 진입</option>
+                <option value="SCALED_ENTRY">단계별 진입</option>
+                <option value="GRID_ENTRY">그리드 진입</option>
+                <option value="PYRAMIDING">피라미딩</option>
+              </Select>
+            </FormGroup>
+            <FormGroup>
+              <Label>청산 전략</Label>
+              <Select
+                value={strategy.exitStrategy || 'SINGLE_EXIT'}
+                onChange={(e) => handleInputChange('exitStrategy', e.target.value)}
+              >
+                <option value="SINGLE_EXIT">단일 청산</option>
+                <option value="PARTIAL_EXIT">부분 청산</option>
+                <option value="TRAILING_STOP">트레일링 스탑</option>
+                <option value="BREAKEVEN_STOP">손익분기 스탑</option>
+              </Select>
+            </FormGroup>
+            <FormGroup>
+              <Label>포지션 사이징</Label>
+              <Select
+                value={strategy.positionSizing || 'FIXED_PERCENTAGE'}
+                onChange={(e) => handleInputChange('positionSizing', e.target.value)}
+              >
+                <option value="FIXED_PERCENTAGE">고정 비율</option>
+                <option value="KELLY_CRITERION">켈리 공식</option>
+                <option value="RISK_PER_TRADE">거래당 리스크</option>
+                <option value="VOLATILITY_ADJUSTED">변동성 조정</option>
+              </Select>
+            </FormGroup>
+            <FormGroup>
+              <Label>리밸런싱 주기</Label>
+              <Select
+                value={strategy.rebalancingPeriod || 'NEVER'}
+                onChange={(e) => handleInputChange('rebalancingPeriod', e.target.value)}
+              >
+                <option value="NEVER">리밸런싱 안함</option>
+                <option value="DAILY">일간</option>
+                <option value="WEEKLY">주간</option>
+                <option value="MONTHLY">월간</option>
+                <option value="QUARTERLY">분기</option>
+              </Select>
+            </FormGroup>
+            <FormGroup>
+              <Label>헤징 전략</Label>
+              <Select
+                value={strategy.hedgingStrategy || 'NONE'}
+                onChange={(e) => handleInputChange('hedgingStrategy', e.target.value)}
+              >
+                <option value="NONE">헤징 안함</option>
+                <option value="PAIRS_TRADING">페어 트레이딩</option>
+                <option value="OPTIONS_STRATEGY">옵션 전략</option>
+                <option value="INVERSE_ETF">역방향 ETF</option>
+                <option value="CURRENCY_HEDGE">통화 헤징</option>
+              </Select>
+            </FormGroup>
+            <FormGroup>
+              <Label>AI 보조 분석</Label>
+              <Select
+                value={strategy.aiAnalysis || 'NONE'}
+                onChange={(e) => handleInputChange('aiAnalysis', e.target.value)}
+              >
+                <option value="NONE">AI 분석 안함</option>
+                <option value="SENTIMENT_ANALYSIS">뉴스 센티먼트</option>
+                <option value="PATTERN_RECOGNITION">패턴 인식</option>
+                <option value="PREDICTIVE_MODELING">예측 모델링</option>
+                <option value="MACHINE_LEARNING">머신러닝</option>
+              </Select>
+            </FormGroup>
+          </FormGrid>
+        </FormSection>
+
+        <FormSection>
+          <SectionTitle>
+            <FiTarget size={20} />
+            리스크 관리
+          </SectionTitle>
+          <FormGrid>
+            <FormGroup>
+              <Label>손절 비율 (%)</Label>
+              <Input
+                type="number"
+                min="1"
+                max="20"
+                value={strategy.stopLoss}
+                onChange={(e) => handleInputChange('stopLoss', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>익절 비율 (%)</Label>
+              <Input
+                type="number"
+                min="5"
+                max="50"
+                value={strategy.takeProfit}
+                onChange={(e) => handleInputChange('takeProfit', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>최대 포지션 크기 (%)</Label>
+              <Input
+                type="number"
+                min="5"
+                max="50"
+                value={strategy.maxPositionSize}
+                onChange={(e) => handleInputChange('maxPositionSize', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>DCA (달러 코스트 애버리징)</Label>
+              <Switch>
+                <span>활성화</span>
+                <SwitchInput
+                  type="checkbox"
+                  checked={strategy.enableDCA}
+                  onChange={(e) => handleInputChange('enableDCA', e.target.checked)}
+                />
+                <SwitchSlider isActive={strategy.enableDCA} />
+              </Switch>
+            </FormGroup>
+            {strategy.enableDCA && (
+              <FormGroup>
+                <Label>DCA 비율 (%)</Label>
+                <Input
+                  type="number"
+                  min="5"
+                  max="30"
+                  value={strategy.dcaPercentage}
+                  onChange={(e) => handleInputChange('dcaPercentage', parseInt(e.target.value))}
+                />
+              </FormGroup>
+            )}
+          </FormGrid>
+        </FormSection>
+
+        <FormSection>
+          <SectionTitle>
+            <FiZap size={20} />
+            거래 시간 설정
+          </SectionTitle>
+          <FormGrid>
+            <FormGroup>
+              <Label>거래 시작 시간 (24시간)</Label>
+              <Input
+                type="number"
+                min="0"
+                max="23"
+                value={strategy.tradingHours.start}
+                onChange={(e) => handleNestedChange('tradingHours', 'start', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>거래 종료 시간 (24시간)</Label>
+              <Input
+                type="number"
+                min="0"
+                max="23"
+                value={strategy.tradingHours.end}
+                onChange={(e) => handleNestedChange('tradingHours', 'end', parseInt(e.target.value))}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>페이퍼 트레이딩</Label>
+              <Switch>
+                <span>활성화</span>
+                <SwitchInput
+                  type="checkbox"
+                  checked={strategy.paperTrading}
+                  onChange={(e) => handleInputChange('paperTrading', e.target.checked)}
+                />
+                <SwitchSlider isActive={strategy.paperTrading} />
+              </Switch>
+            </FormGroup>
+          </FormGrid>
+        </FormSection>
           
           <ButtonGroup>
             <Button
-              onClick={saveStrategyToFirebase}
+            variant="success"
+            onClick={handleSave}
               disabled={isSaving}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <FiCloud size={16} />
-              {isSaving ? '저장 중...' : 'Firebase에 저장'}
+            <FiSave size={18} />
+            {isSaving ? '저장 중...' : '전략 저장'}
             </Button>
-            <SecondaryButton
+          
+          <Button
+            variant="secondary"
+              onClick={downloadCode}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <FiDownload size={16} />
+            <FiDownload size={18} />
               코드 다운로드
-            </SecondaryButton>
+          </Button>
           </ButtonGroup>
-        </CodePanel>
-        </MainContent>
+      </StrategyForm>
+
+      <CodePreview>
+        <CodeHeader>
+          <CodeTitle>
+            <FiCode size={18} />
+            생성된 Python 코드
+          </CodeTitle>
+        </CodeHeader>
+        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{generatedCode}</pre>
+      </CodePreview>
+
+      <InfoBox>
+        <InfoTitle>
+          <FiZap size={18} />
+          💡 전략 빌더 사용법
+        </InfoTitle>
+        <InfoList>
+          <li>위 설정을 변경하면 Python 코드가 자동으로 생성됩니다</li>
+          <li><strong>전략 저장</strong> 버튼으로 Firebase에 전략을 저장할 수 있습니다</li>
+          <li><strong>코드 다운로드</strong> 버튼으로 생성된 Python 파일을 다운로드할 수 있습니다</li>
+          <li>다운로드한 코드를 자동매매 봇과 연동하여 사용하세요</li>
+          <li>모든 설정은 실시간으로 코드에 반영되어 즉시 적용 가능합니다</li>
+        </InfoList>
+      </InfoBox>
       </BuilderContainer>
-    </DragDropContext>
   );
 };
 

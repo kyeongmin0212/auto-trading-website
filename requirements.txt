@@ -1,0 +1,27 @@
+# Auto Trading Bot Required Libraries
+firebase-admin==6.2.0
+asyncio
+python-binance==1.0.19
+ccxt==4.1.13
+pandas>=2.2.0
+numpy>=1.26.0
+ta==0.10.2
+python-dotenv==1.0.0
+requests==2.31.0
+websocket-client==1.6.4
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# AI and Machine Learning Libraries
+openai>=1.0.0
+tensorflow>=2.10.0
+scikit-learn>=1.1.0
+
+# Utility Libraries
+tenacity>=8.0.0
+python-telegram-bot>=20.0
+pytz
+
+# Firebase Libraries
+firebase-admin>=6.0.0
+psutil>=5.9.0

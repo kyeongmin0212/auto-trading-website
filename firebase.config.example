@@ -1,0 +1,20 @@
+# Firebase 설정 예시 파일
+# 이 파일을 .env로 복사하고 실제 값들을 입력하세요
+
+# Firebase 설정
+REACT_APP_FIREBASE_API_KEY=your_firebase_api_key_here
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+REACT_APP_FIREBASE_APP_ID=your_app_id
+REACT_APP_FIREBASE_MEASUREMENT_ID=your_measurement_id
+
+# 앱 설정
+REACT_APP_ENV=development
+REACT_APP_API_URL=http://localhost:5000
+
+# 사용 방법:
+# 1. 이 파일을 .env로 복사
+# 2. 실제 Firebase 프로젝트 값들로 교체
+# 3. .env 파일을 .gitignore에 추가하여 Git에 커밋하지 않음

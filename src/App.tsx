@@ -4,11 +4,13 @@ import { Toaster } from 'react-hot-toast';
 import styled from 'styled-components';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
-import TradingChart from './pages/TradingChart';
 import AutoTrading from './pages/AutoTrading';
-import Portfolio from './pages/Portfolio';
-import Settings from './pages/Settings';
+import Community from './pages/Community';
+import Board from './pages/Board';
 import StrategyBuilder from './pages/StrategyBuilder';
+import MyPage from './pages/MyPage';
+import Auth from './components/Auth';
+import { AuthProvider, useAuth } from './components/Auth';
 
 const AppContainer = styled.div`
   display: flex;
@@ -21,19 +23,41 @@ const MainContent = styled.main`
   overflow-y: auto;
 `;
 
-function App() {
+function AppContent() {
+  const { user, loading, signOut } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white',
+        fontSize: '18px'
+      }}>
+        로딩 중...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Auth />;
+  }
+
   return (
     <Router>
       <AppContainer>
-        <Sidebar />
+        <Sidebar onLogout={signOut} />
         <MainContent>
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/chart" element={<TradingChart />} />
             <Route path="/auto-trading" element={<AutoTrading />} />
-            <Route path="/portfolio" element={<Portfolio />} />
-            <Route path="/settings" element={<Settings />} />
             <Route path="/strategy-builder" element={<StrategyBuilder />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/board" element={<Board />} />
+            <Route path="/my-page" element={<MyPage />} />
           </Routes>
         </MainContent>
         <Toaster
@@ -49,6 +73,14 @@ function App() {
         />
       </AppContainer>
     </Router>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
