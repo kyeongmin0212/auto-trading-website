@@ -15,7 +15,8 @@ import {
   Unsubscribe,
   writeBatch,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  increment
 } from 'firebase/firestore';
 import { db } from './config';
 
@@ -1057,10 +1058,15 @@ export const userService = {
   async updateUserStatus(userId: string, isOnline: boolean): Promise<void> {
     try {
       const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        isOnline,
-        lastSeen: serverTimestamp()
-      });
+      // 문서가 없어도 동작하도록 merge 옵션으로 setDoc 사용
+      await setDoc(
+        userRef,
+        {
+          isOnline,
+          lastSeen: serverTimestamp()
+        },
+        { merge: true }
+      );
     } catch (error) {
       console.error('사용자 상태 업데이트 오류:', error);
       throw error;
@@ -1087,11 +1093,6 @@ export const userService = {
   }
 };
 
-// Firestore increment 함수 (Firebase v9+)
-const increment = (n: number) => {
-  return {
-    increment: n
-  };
-};
+// increment는 firebase/firestore에서 가져옵니다.
 
 

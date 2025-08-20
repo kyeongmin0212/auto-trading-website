@@ -5,14 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiSend, FiUsers, FiMessageCircle, FiTrendingUp, FiPlus, FiX, FiHeart, FiMessageSquare, FiShare2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useAuth } from '../components/Auth';
-import { 
-  postService, 
-  chatService, 
-  userService,
-  Post, 
-  ChatMessage, 
-  User 
-} from '../firebase/services';
+import { postService, chatService, userService, Post, ChatMessage, User } from '../firebase/services';
 
 const CommunityContainer = styled.div`
   padding: 20px;
@@ -271,117 +264,81 @@ const InfoText = styled.p`
   font-size: 14px;
 `;
 
-// 게시물 관련 스타일
-const PostsSection = styled.div`
-  background: rgba(26, 31, 46, 0.8);
-  border: 1px solid #2d3748;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-`;
+// 샘플 데이터
+const sampleUsers = [
+  { id: 1, name: '트레이더김', status: '온라인', avatar: '김' },
+  { id: 2, name: 'AI매매러', status: '온라인', avatar: 'AI' },
+  { id: 3, name: '암호화폐왕', status: '온라인', avatar: '왕' },
+  { id: 4, name: '투자고수', status: '온라인', avatar: '고' },
+  { id: 5, name: '차트분석가', status: '온라인', avatar: '차' },
+];
 
-const PostsHeader = styled.div`
-  padding: 20px;
-  border-bottom: 1px solid #2d3748;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
+const samplePosts = [
+  {
+    id: 1,
+    topicId: 1,
+    author: '트레이더김',
+    title: '비트코인 45,000 달러 돌파 가능성 분석',
+    content: '최근 비트코인 차트를 분석한 결과, 45,000 달러 돌파 가능성이 높아 보입니다. RSI 지표가 과매도 상태에서 벗어나고 있고, 볼린저 밴드 하단에서 반등하는 모습을 보이고 있어요.',
+    timestamp: '2시간 전',
+    likes: 12,
+    comments: 8,
+    views: 245,
+  },
+  {
+    id: 2,
+    topicId: 1,
+    author: 'AI매매러',
+    title: 'AI 분석 결과: 비트코인 상승 신호 감지',
+    content: 'AI 모델이 분석한 결과, 비트코인에 강한 상승 신호가 감지되었습니다. 특히 4시간 차트에서 MACD 골든크로스가 발생했고, 거래량도 증가하는 추세입니다.',
+    timestamp: '1시간 전',
+    likes: 18,
+    comments: 15,
+    views: 156,
+  },
+  {
+    id: 3,
+    topicId: 2,
+    author: '암호화폐왕',
+    title: '성공적인 AI 자동매매 전략 공유',
+    content: '지난 한 달간 AI 자동매매로 15% 수익을 달성했습니다. 핵심은 이동평균선과 RSI를 조합한 전략이었어요. 자세한 설정값도 공유드립니다.',
+    timestamp: '3시간 전',
+    likes: 25,
+    comments: 22,
+    views: 203,
+  },
+];
 
-const PostsTitle = styled.h2`
-  font-size: 18px;
-  font-weight: 600;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-`;
-
-const NewPostButton = styled(motion.button)`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  color: #ffffff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 500;
-`;
-
-const PostsList = styled.div`
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-`;
-
-const PostItem = styled.div`
-  background: rgba(45, 55, 72, 0.8);
-  border: 1px solid #2d3748;
-  border-radius: 12px;
-  padding: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    border-color: #667eea;
-    transform: translateY(-2px);
-  }
-`;
-
-const PostHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-`;
-
-const PostAuthor = styled.div`
-  font-size: 14px;
-  font-weight: 600;
-  color: #667eea;
-`;
-
-const PostTime = styled.div`
-  font-size: 12px;
-  color: #718096;
-`;
-
-const PostContent = styled.div`
-  font-size: 14px;
-  color: #ffffff;
-  line-height: 1.5;
-  margin-bottom: 12px;
-`;
-
-const PostActions = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-`;
-
-const PostAction = styled.button`
-  background: none;
-  border: none;
-  color: #a0aec0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  transition: color 0.3s ease;
-  
-  &:hover {
-    color: #667eea;
-  }
-`;
+const sampleMessages = [
+  {
+    id: 1,
+    username: '트레이더김',
+    message: '안녕하세요! 오늘 비트코인 전망 어떻게 보시나요?',
+    timestamp: '14:30',
+    isOwn: false,
+  },
+  {
+    id: 2,
+    username: 'AI매매러',
+    message: 'AI 분석 결과로는 상승 전망이 강합니다. 45,000 달러 돌파 가능성 높아요!',
+    timestamp: '14:32',
+    isOwn: false,
+  },
+  {
+    id: 3,
+    username: '나',
+    message: '저도 같은 생각입니다. RSI 지표도 과매도 상태에서 벗어나고 있어요.',
+    timestamp: '14:33',
+    isOwn: true,
+  },
+  {
+    id: 4,
+    username: '암호화폐왕',
+    message: '하지만 4시간 차트에서 저항선이 있어서 주의가 필요할 것 같습니다.',
+    timestamp: '14:35',
+    isOwn: false,
+  },
+];
 
 // 모달 스타일
 const ModalOverlay = styled(motion.div)`
@@ -518,104 +475,6 @@ const SubmitButton = styled(motion.button)`
   align-self: flex-end;
 `;
 
-// 샘플 데이터
-const sampleUsers = [
-  { id: 1, name: '트레이더김', status: '온라인', avatar: '김' },
-  { id: 2, name: 'AI매매러', status: '온라인', avatar: 'AI' },
-  { id: 3, name: '암호화폐왕', status: '온라인', avatar: '왕' },
-  { id: 4, name: '투자고수', status: '온라인', avatar: '고' },
-  { id: 5, name: '차트분석가', status: '온라인', avatar: '차' },
-];
-
-const samplePosts = [
-  {
-    id: 1,
-    topicId: 1,
-    author: '트레이더김',
-    title: '비트코인 45,000 달러 돌파 가능성 분석',
-    content: '최근 비트코인 차트를 분석한 결과, 45,000 달러 돌파 가능성이 높아 보입니다. RSI 지표가 과매도 상태에서 벗어나고 있고, 볼린저 밴드 하단에서 반등하는 모습을 보이고 있어요.',
-    timestamp: '2시간 전',
-    likes: 12,
-    comments: 8,
-    views: 245,
-  },
-  {
-    id: 2,
-    topicId: 1,
-    author: 'AI매매러',
-    title: 'AI 분석 결과: 비트코인 상승 신호 감지',
-    content: 'AI 모델이 분석한 결과, 비트코인에 강한 상승 신호가 감지되었습니다. 특히 4시간 차트에서 MACD 골든크로스가 발생했고, 거래량도 증가하는 추세입니다.',
-    timestamp: '1시간 전',
-    likes: 18,
-    comments: 15,
-    views: 156,
-  },
-  {
-    id: 3,
-    topicId: 2,
-    author: '암호화폐왕',
-    title: '성공적인 AI 자동매매 전략 공유',
-    content: '지난 한 달간 AI 자동매매로 15% 수익을 달성했습니다. 핵심은 이동평균선과 RSI를 조합한 전략이었어요. 자세한 설정값도 공유드립니다.',
-    timestamp: '3시간 전',
-    likes: 25,
-    comments: 22,
-    views: 203,
-  },
-  {
-    id: 4,
-    topicId: 3,
-    author: '투자고수',
-    title: '이더리움 2.0 업데이트 완료 소식',
-    content: '이더리움 2.0 업데이트가 성공적으로 완료되었습니다. 이제 더 빠르고 효율적인 거래가 가능해졌어요. 투자자들에게 좋은 소식입니다.',
-    timestamp: '4시간 전',
-    likes: 32,
-    comments: 28,
-    views: 178,
-  },
-  {
-    id: 5,
-    topicId: 4,
-    author: '차트분석가',
-    title: '암호화폐 포트폴리오 구성 가이드',
-    content: '초보자를 위한 암호화폐 포트폴리오 구성 방법을 공유합니다. 리스크 분산과 수익 극대화를 위한 팁들을 정리했습니다.',
-    timestamp: '5시간 전',
-    likes: 15,
-    comments: 12,
-    views: 134,
-  },
-];
-
-const sampleMessages = [
-  {
-    id: 1,
-    username: '트레이더김',
-    message: '안녕하세요! 오늘 비트코인 전망 어떻게 보시나요?',
-    timestamp: '14:30',
-    isOwn: false,
-  },
-  {
-    id: 2,
-    username: 'AI매매러',
-    message: 'AI 분석 결과로는 상승 전망이 강합니다. 45,000 달러 돌파 가능성 높아요!',
-    timestamp: '14:32',
-    isOwn: false,
-  },
-  {
-    id: 3,
-    username: '나',
-    message: '저도 같은 생각입니다. RSI 지표도 과매도 상태에서 벗어나고 있어요.',
-    timestamp: '14:33',
-    isOwn: true,
-  },
-  {
-    id: 4,
-    username: '암호화폐왕',
-    message: '하지만 4시간 차트에서 저항선이 있어서 주의가 필요할 것 같습니다.',
-    timestamp: '14:35',
-    isOwn: false,
-  },
-];
-
 const Community: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -633,7 +492,7 @@ const Community: React.FC = () => {
   const popularPosts = posts
     .map(post => ({
       ...post,
-      popularityScore: post.views + (post.comments * 2) + (post.likes * 3)
+      popularityScore: (post.views || 0) + ((post.comments || 0) * 2) + ((post.likes || 0) * 3)
     }))
     .sort((a, b) => b.popularityScore - a.popularityScore)
     .slice(0, 5);
@@ -750,8 +609,8 @@ const Community: React.FC = () => {
         });
         
         setNewPost({ title: '', content: '', category: '일반' });
-        setShowNewPostModal(false);
-        toast.success('게시물이 작성되었습니다!');
+      setShowNewPostModal(false);
+      toast.success('게시물이 작성되었습니다!');
         
         // 게시물 목록 새로고침
         const postsData = await postService.getPosts(undefined, 20);
@@ -764,11 +623,11 @@ const Community: React.FC = () => {
   };
 
   const filteredPosts = selectedTopic 
-    ? posts.filter(post => post.id === selectedTopic)
+    ? posts.filter(post => post.id?.toString() === selectedTopic)
     : posts;
 
   const selectedTopicTitle = selectedTopic 
-    ? posts.find(post => post.id === selectedTopic)?.title
+    ? posts.find(post => post.id?.toString() === selectedTopic)?.title
     : '전체 게시물';
 
   // 날짜 포맷팅 함수
@@ -823,59 +682,11 @@ const Community: React.FC = () => {
         <InfoText>
           커뮤니티에서 다른 트레이더들과 실시간으로 대화하고, 
           투자 전략과 시장 분석을 게시물로 공유할 수 있습니다.
+          Firebase 실시간 데이터베이스와 연동되어 있습니다!
         </InfoText>
       </InfoBox>
 
       <Content>
-        {selectedTopic ? (
-          <PostsSection>
-            <PostsHeader>
-              <PostsTitle>
-                <FiTrendingUp size={20} />
-                {selectedTopicTitle}
-              </PostsTitle>
-              <NewPostButton
-                onClick={() => setShowNewPostModal(true)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <FiPlus size={16} />
-                새 게시물
-              </NewPostButton>
-            </PostsHeader>
-            
-            <PostsList>
-              {filteredPosts.map((post) => (
-                <PostItem key={post.id}>
-                  <PostHeader>
-                    <PostAuthor>{post.author}</PostAuthor>
-                    <PostTime>{formatDate(post.createdAt)}</PostTime>
-                  </PostHeader>
-                  <PostContent>
-                    <div style={{ fontWeight: '600', marginBottom: '8px' }}>
-                      {post.title}
-                    </div>
-                    {post.content}
-                  </PostContent>
-                  <PostActions>
-                    <PostAction>
-                      <FiHeart size={14} />
-                      {post.likes}
-                    </PostAction>
-                    <PostAction>
-                      <FiMessageSquare size={14} />
-                      {post.comments}
-                    </PostAction>
-                    <PostAction>
-                      <FiShare2 size={14} />
-                      공유
-                    </PostAction>
-                  </PostActions>
-                </PostItem>
-              ))}
-            </PostsList>
-          </PostsSection>
-        ) : (
           <ChatSection>
             <ChatHeader>
               <FiMessageCircle size={20} />
@@ -883,23 +694,23 @@ const Community: React.FC = () => {
             </ChatHeader>
             
             <ChatMessages>
-              {loading ? (
-                <div style={{ textAlign: 'center', color: '#a0aec0', padding: '20px' }}>
-                  채팅을 불러오는 중...
-                </div>
-              ) : (
-                messages.map((msg) => (
-                  <Message key={msg.id} isOwn={msg.authorId === user?.uid}>
-                    <MessageInfo>
-                      <Username>{msg.author}</Username>
-                      <Timestamp>{formatDate(msg.createdAt)}</Timestamp>
-                    </MessageInfo>
-                    <MessageBubble isOwn={msg.authorId === user?.uid}>
-                      {msg.content}
-                    </MessageBubble>
-                  </Message>
-                ))
-              )}
+            {loading ? (
+              <div style={{ textAlign: 'center', color: '#a0aec0', padding: '20px' }}>
+                채팅을 불러오는 중...
+              </div>
+            ) : (
+              messages.map((msg) => (
+                <Message key={msg.id} isOwn={msg.authorId === user?.uid}>
+                  <MessageInfo>
+                    <Username>{msg.author}</Username>
+                    <Timestamp>{formatDate(msg.createdAt)}</Timestamp>
+                  </MessageInfo>
+                  <MessageBubble isOwn={msg.authorId === user?.uid}>
+                    {msg.content}
+                  </MessageBubble>
+                </Message>
+              ))
+            )}
               <div ref={messagesEndRef} />
             </ChatMessages>
             
@@ -921,7 +732,6 @@ const Community: React.FC = () => {
               </SendButton>
             </ChatInput>
           </ChatSection>
-        )}
 
         <Sidebar>
           <OnlineUsers>
@@ -941,19 +751,42 @@ const Community: React.FC = () => {
           </OnlineUsers>
 
           <TrendingTopics>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
             <SidebarTitle>
               <FiTrendingUp size={16} />
               인기 게시물
             </SidebarTitle>
+              <motion.button
+                onClick={() => setShowNewPostModal(true)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                style={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <FiPlus size={12} />
+                새 게시물
+              </motion.button>
+            </div>
             {popularPosts.map((post, index) => (
               <TopicItem 
                 key={post.id}
                 isClickable={true}
                 onClick={() => handleTopicClick(post.id!)}
                 style={{ 
-                  background: selectedTopic === post.id ? 'rgba(102, 126, 234, 0.1)' : 'transparent',
-                  borderLeft: selectedTopic === post.id ? '3px solid #667eea' : 'none',
-                  paddingLeft: selectedTopic === post.id ? '12px' : '8px'
+                  background: selectedTopic === post.id?.toString() ? 'rgba(102, 126, 234, 0.1)' : 'transparent',
+                  borderLeft: selectedTopic === post.id?.toString() ? '3px solid #667eea' : 'none',
+                  paddingLeft: selectedTopic === post.id?.toString() ? '12px' : '8px'
                 }}
               >
                 <TopicTitle>
@@ -970,9 +803,9 @@ const Community: React.FC = () => {
                   {post.title}
                 </TopicTitle>
                 <TopicStats>
-                  <span>👁️ {post.views}</span>
-                  <span>💬 {post.comments}</span>
-                  <span>👍 {post.likes}</span>
+                  <span>👁️ {post.views || 0}</span>
+                  <span>💬 {post.comments || 0}</span>
+                  <span>👍 {post.likes || 0}</span>
                 </TopicStats>
               </TopicItem>
             ))}
@@ -1011,6 +844,7 @@ const Community: React.FC = () => {
                     <option value="일반">일반</option>
                     <option value="질문">질문</option>
                     <option value="정보">정보</option>
+                    <option value="전략">전략</option>
                   </FormSelect>
                 </FormGroup>
                 
