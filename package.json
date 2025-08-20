@@ -2,6 +2,7 @@
   "name": "auto-trading-website",
   "version": "1.0.0",
   "description": "AI 기반 자동매매 웹사이트",
+  "homepage": "https://kyeongmin0212.github.io/auto-trading-website",
   "private": true,
   "dependencies": {
     "@types/node": "^16.18.0",
