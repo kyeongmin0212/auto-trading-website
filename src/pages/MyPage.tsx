@@ -266,26 +266,39 @@ const MyPage: React.FC = () => {
     try {
       const user = auth.currentUser;
       if (user) {
-        // Firebase에서 사용자 정보 가져오기
-        const userInfo = await getUserInfo(user.uid);
-        if (userInfo) {
-          setUserInfo({
-            email: userInfo.email,
-            name: userInfo.name || '',
-            createdAt: userInfo.createdAt.toDate()
-          });
-        } else {
-          // 사용자 정보가 없으면 기본값 설정
-          setUserInfo({
-            email: user.email || '',
-            name: '',
-            createdAt: new Date(user.metadata.creationTime || Date.now())
-          });
+        // Firebase에서 사용자 정보 가져오기 시도
+        try {
+          const userInfo = await getUserInfo(user.uid);
+          if (userInfo) {
+            setUserInfo({
+              email: userInfo.email,
+              name: userInfo.name || '',
+              createdAt: userInfo.createdAt.toDate()
+            });
+            return;
+          }
+        } catch (firebaseError) {
+          console.log('Firebase 사용자 정보 로드 실패, 기본값 사용');
         }
+        
+        // Firebase에서 정보를 가져올 수 없으면 기본값 설정
+        setUserInfo({
+          email: user.email || '',
+          name: user.displayName || '',
+          createdAt: new Date(user.metadata.creationTime || Date.now())
+        });
       }
     } catch (error) {
       console.error('사용자 정보 로드 실패:', error);
-      toast.error('사용자 정보를 불러올 수 없습니다.');
+      // 오류가 발생해도 기본 정보는 표시
+      const user = auth.currentUser;
+      if (user) {
+        setUserInfo({
+          email: user.email || '',
+          name: user.displayName || '',
+          createdAt: new Date(user.metadata.creationTime || Date.now())
+        });
+      }
     }
   };
 

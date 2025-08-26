@@ -1,0 +1,6 @@
+[33m9e604b5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m 사용하지 않는 코드 정리 - 불필요한 import, 변수, 샘플 데이터 제거
+[33m26e2785[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m 빌드된 파일 추가 - GitHub Pages 배포
+[33m3545c8d[m GitHub Pages 배포 설정 추가
+[33mf793166[m Firebase 커뮤니티 기능 완성 및 배포 준비
+[33mdd13c8d[m Initial commit: 자동매매 웹사이트 프로젝트 - 실시간 채팅 및 게시물 시스템 구현
+[33m94825f2[m 자동매매 웹사이트 초기 배포

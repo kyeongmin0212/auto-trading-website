@@ -1057,10 +1057,15 @@ export const userService = {
   async updateUserStatus(userId: string, isOnline: boolean): Promise<void> {
     try {
       const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        isOnline,
-        lastSeen: serverTimestamp()
-      });
+      // 문서가 없을 수도 있으므로 merge로 생성/업데이트 모두 처리
+      await setDoc(
+        userRef,
+        {
+          isOnline,
+          lastSeen: serverTimestamp(),
+        },
+        { merge: true }
+      );
     } catch (error) {
       console.error('사용자 상태 업데이트 오류:', error);
       throw error;

@@ -64,3 +64,6 @@ auto_trading_config.env
 
 # Firebase service account key
 firebase-service-account.json
+
+# Local Netlify folder
+.netlify
