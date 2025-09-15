@@ -59,6 +59,9 @@ venv.bak/
 # Trading bot
 stock_trading_bot.log
 api_cache/
+
+# 압축 파일
+*.zip
 trading_settings.json
 auto_trading_config.env
 
