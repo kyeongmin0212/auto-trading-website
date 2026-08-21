@@ -1,126 +1,125 @@
-# 자동매매 웹사이트
+[us-kr-stock-auto-trading README.md](https://github.com/user-attachments/files/31296163/us-kr-stock-auto-trading.README.md)
+# us-kr-stock-auto-trading — 주식 자동매매 웹 플랫폼
 
-실시간 차트와 자동매매 기능을 제공하는 현대적인 웹 애플리케이션입니다.
+**한국투자증권(KIS) Open API**를 연동해 미국·국내 주식을 자동매매하는 웹 서비스입니다.
+코드를 몰라도 전략을 만들 수 있는 **No-Code 전략 편집기**와,
+직접 작성한 파이썬 전략을 안전하게 실행하는 **샌드박스 실행기**를 함께 제공합니다.
 
-## 🚀 주요 기능
+`2025` · 개인 프로젝트 · React + Flask + Express
 
-### 📊 실시간 차트
-- TradingView 위젯을 통한 전문적인 차트 제공
-- 다양한 시간대와 지표 지원
-- 실시간 가격 업데이트
+<br>
 
-### 🤖 자동매매 시스템
-- 사용자 정의 매매 전략 설정
-- 이동평균, RSI 등 기술적 지표 기반 매매
-- 실시간 시장 모니터링
+## 시스템 구성
 
-### 💼 포트폴리오 관리
-- 보유 자산 현황 실시간 조회
-- 수익률 분석 및 차트 시각화
-- 자산 분포 파이 차트
+```
+[Frontend]  React 18 + TypeScript
+              Dashboard · AutoTrading · StrategyBuilder · Community · Board · MyPage
+                    ↓
+[API]       Express (server.js)     인증 · 게시판 · 커뮤니티
+            Flask   (app.py)        KIS 연동 · 봇 제어 · 전략 실행   ← REST API 20개
+                    ↓
+[Engine]    Auto-ganggang.py (96KB)  자동매매 엔진
+            code_executor.py         사용자 전략 샌드박스 실행
+            kis_api_client.py        한국투자증권 API 클라이언트
+                    ↓
+[Data]      MySQL (거래·게시판) + Firebase (인증·실시간)
+[Deploy]    Docker · nginx · Vercel
+```
 
-### ⚙️ 설정 관리
-- API 키 관리 (Binance, Upbit, Bithumb, Coinone)
-- 알림 설정 (이메일, 푸시)
-- 거래 제한 설정 (손절, 익절, 최대 거래 금액)
+<br>
 
-## 🛠️ 기술 스택
+## 주요 기능
 
-- **Frontend**: React 18, TypeScript
-- **Styling**: Styled Components
-- **Charts**: Recharts, TradingView Widget
-- **Animations**: Framer Motion
-- **Icons**: React Icons
-- **Notifications**: React Hot Toast
+### 한국투자증권 API 연동 (`kis_api_client.py`)
+- **해외주식**(나스닥 기준, USD) 잔고 · 현재가 · 차트 조회, **주문 전송**
+- 국내주식 잔고 조회
+- 접속 테스트 · 연결/해제 · 계좌 정보 · 주문 내역 · 체결 내역
 
-## 📦 설치 및 실행
+### 자동매매 엔진 (`Auto-ganggang.py`)
+| 구성 | 역할 |
+|---|---|
+| `TradingBot` | 매매 사이클 실행 |
+| `MarketAnalyzer` | 시장 분석 · 매수 판단 |
+| `StopLossManager` | 손절 · 익절 · 포지션 관리 |
+| `TradingHistory` | 거래 기록 · 성과 집계 |
+| `PaperTradingManager` | **모의투자** — 실계좌 없이 전략 검증 |
+| `RateLimiter` | KIS API 호출 제한 관리 |
+| `FileManager` | 파일락 기반 동시 접근 보호 |
 
-### 1. 의존성 설치
+- 공포탐욕지수(Fear & Greed) 연동
+- 텔레그램 실시간 알림
+- 캐시 데코레이터로 반복 조회 비용 절감
+
+### No-Code 전략 편집기 (`StrategyBuilder.tsx`)
+프로그래밍 지식 없이 **화면에서 조건을 조합해 매매 전략을 생성**합니다.
+지표·조건·매매 액션을 블록처럼 배치하는 방식입니다.
+
+### 사용자 코드 실행기 (`code_executor.py`)
+직접 작성한 파이썬 전략을 실행하되, **AST 파싱으로 위험한 코드를 차단**합니다.
+
+- 허용 모듈 화이트리스트 (`math` `random` `datetime` `json` `pandas` `numpy` …)
+- 실행 전 구문 검사 → 미허용 import·호출 차단
+- 실행 결과와 오류를 API로 반환
+
+### 웹 서비스
+- 대시보드 — 자산 현황 · 수익률 · 봇 상태
+- 자동매매 — 봇 시작/정지, 실시간 로그
+- 커뮤니티 · 게시판 — 전략 공유
+- 마이페이지 — KIS API 키 · 텔레그램 · 알림 설정
+
+<br>
+
+## API (Flask)
+
+```
+POST  /api/kis/test-connection      접속 테스트
+POST  /api/kis/connect              연결
+GET   /api/kis/account-info         계좌 정보
+GET   /api/kis/overseas-balance     해외주식 잔고
+GET   /api/kis/stock-price          현재가
+GET   /api/kis/stock-chart          차트 데이터
+POST  /api/kis/place-order          주문 전송
+GET   /api/kis/order-history        주문 내역
+GET   /api/kis/execution-history    체결 내역
+
+POST  /api/trading/execute-code     사용자 전략 실행
+GET   /api/trading/code-status      실행 상태
+
+POST  /api/bot/start · stop         봇 제어
+GET   /api/bot/status · logs        상태 · 로그
+GET   /api/settings                 설정 조회/저장
+```
+
+<br>
+
+## 기술 스택
+
+**Frontend** `React 18` `TypeScript` `styled-components` `framer-motion` `react-beautiful-dnd`
+**Backend** `Flask` `Express` `Python` `Node.js`
+**Database** `MySQL` `Firebase / Firestore`
+**Infra** `Docker` `nginx` `Vercel`
+**External** `한국투자증권 Open API` `Telegram Bot API`
+
+<br>
+
+## 실행
+
 ```bash
 npm install
+pip install -r requirements.txt
+
+npm run dev          # 프론트 + Express 동시 실행
+python app.py        # Flask API
 ```
 
-### 2. 개발 서버 실행
-```bash
-npm start
-```
+환경변수(`.env`)에 KIS API 키, Firebase 설정, MySQL 접속 정보가 필요합니다.
+자세한 설정은 [`KIS_API_SETUP.md`](KIS_API_SETUP.md), [`SETUP_GUIDE.md`](SETUP_GUIDE.md),
+사용자 전략 작성법은 [`CUSTOM_CODE_GUIDE.md`](CUSTOM_CODE_GUIDE.md) 참고.
 
-브라우저에서 [http://localhost:3000](http://localhost:3000)으로 접속하세요.
+<br>
 
-### 3. 프로덕션 빌드
-```bash
-npm run build
-```
+## 참고
 
-## 🎨 디자인 특징
-
-- **다크 테마**: 눈의 피로를 줄이는 다크 모드
-- **반응형 디자인**: 모든 디바이스에서 최적화된 경험
-- **모던 UI**: 그라디언트와 블러 효과를 활용한 현대적인 디자인
-- **부드러운 애니메이션**: Framer Motion을 통한 자연스러운 인터랙션
-
-## 📱 페이지 구성
-
-### 대시보드
-- 실시간 포트폴리오 현황
-- 일일 수익률 및 거래량 통계
-- 포트폴리오 성과 차트
-
-### 실시간 차트
-- TradingView 전문 차트
-- 심볼 검색 및 변경
-- 실시간 가격 정보
-
-### 자동매매
-- 매매 전략 생성 및 관리
-- 전략 활성화/비활성화
-- 실시간 전략 모니터링
-
-### 포트폴리오
-- 보유 자산 상세 정보
-- 수익률 분석
-- 자산 분포 시각화
-
-### 설정
-- API 키 관리
-- 알림 설정
-- 거래 제한 설정
-- 보안 설정
-
-## 🔧 환경 설정
-
-### API 키 설정
-1. 거래소에서 API 키를 발급받으세요
-2. 설정 페이지에서 API 키와 시크릿을 입력하세요
-3. 필요한 권한을 설정하세요 (거래, 조회)
-
-### 알림 설정
-- 이메일 알림: 거래 알림 및 가격 알림
-- 푸시 알림: 실시간 거래 상태 업데이트
-
-## ⚠️ 주의사항
-
-- 이 프로젝트는 데모 목적으로 제작되었습니다
-- 실제 거래에 사용하기 전에 충분한 테스트가 필요합니다
-- API 키는 안전하게 보관하시기 바랍니다
-- 거래 전략은 투자자의 책임 하에 설정하시기 바랍니다
-
-## 🤝 기여하기
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 라이선스
-
-이 프로젝트는 MIT 라이선스 하에 배포됩니다.
-
-## 📞 문의
-
-프로젝트에 대한 문의사항이 있으시면 이슈를 생성해주세요.
-
----
-
-**면책 조항**: 이 소프트웨어는 교육 및 데모 목적으로 제공됩니다. 실제 거래에 사용하기 전에 충분한 테스트와 검증이 필요하며, 투자 손실에 대한 책임은 사용자에게 있습니다.
+- 실제 자금이 투입되는 주문 기능을 포함합니다. **모의투자(`PaperTradingManager`)로 충분히
+  검증한 뒤 사용하는 것을 권합니다.**
+- 개인 학습용 프로젝트이며, 투자 손실에 대한 책임은 사용자에게 있습니다.
