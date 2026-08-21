@@ -1,6 +1,3 @@
-[us-kr-stock-auto-trading README.md](https://github.com/user-attachments/files/31296163/us-kr-stock-auto-trading.README.md)
-# us-kr-stock-auto-trading — 주식 자동매매 웹 플랫폼
-
 **한국투자증권(KIS) Open API**를 연동해 미국·국내 주식을 자동매매하는 웹 서비스입니다.
 코드를 몰라도 전략을 만들 수 있는 **No-Code 전략 편집기**와,
 직접 작성한 파이썬 전략을 안전하게 실행하는 **샌드박스 실행기**를 함께 제공합니다.
